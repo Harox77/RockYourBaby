@@ -1,0 +1,4 @@
+AR0 = Amplitude
+AR1 = Frequency
+AR2 = Cry
+AR3 = Heartbeat
