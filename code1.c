@@ -263,7 +263,6 @@ receiveValues(&frequency, &amplitude);
 
 
 while(1){
-//sendValues(m.freq, m.amp);
 receiveValues(&frequency, &amplitude);
 //printf("received something");
 
@@ -299,8 +298,10 @@ else{
         //send values with function
         sendValues(m.amp, m.freq);
 
+	receiveValues(&frequency, &amplitude);
+
         //current stress to compare
-        randomStress = calculateStressLevel(m.freq, m.amp);
+        randomStress = calculateStressLevel(frequency, amplitude);
 
         printf("raondom stress is %d\n", randomStress);
 
