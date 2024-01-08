@@ -314,10 +314,15 @@ else{
         //depending on baby change this to ampltiude first instead of frequency first
 
 //add here that diffStresss only matters when stressLevel is lower than 10
-if(diffStress <= 3 && currentStress >= 0 && m.freq > 0 && m.amp > 0){
+if(diffStress <= 3 && currentStress >= 0 && currentStress <= 10 && m.freq > 0 && m.amp > 0){
      printf("The frequency and amplitude have not been changed");
+	sendValues(m.amp, m.freq);
 }
-else if(diffStress > 3 && randomStress > currentStress && currentStress >= 0 && m.freq > 0 && m.amp > 0){
+else if(/*diffStress > 3 && */randomStress > currentStress && currentStress >= 0 && currentStress > 10 && m.freq > 0 && m.amp > 0){
+	if(diffStress < 4){
+		m.freq = m.freq + 3;
+     		m.amp = m.amp - 3;
+	}
      if(diffStress >= 4 && diffStress <= 10){
      m.freq = m.freq + 8.89;
      m.amp = m.amp - 8.89;
@@ -337,10 +342,10 @@ else if(diffStress > 25 && currentStress >= 0 && m.freq > 0 && m.amp > 0){
 	//might want to change the reset to be when diffStress is high
 
 
-else if (diffStress > 3 && randomStress < currentStress && currentStress >= 0 && m.freq > 0 && m.amp > 0){
-    // if greater we do nothing and repeat the loop
-    ;
-    }
+// else if (diffStress > 3 && randomStress < currentStress && currentStress >= 0 && m.freq > 0 && m.amp > 0){
+//     // if greater we do nothing and repeat the loop
+//     ;
+//     }
 }
 /*else if (previousStress < currentStress && currentStress >= 0 && m.freq > 0 && m.amp > 0 && m.freq <= 100 && m.amp <= 100){
       m.freq = m.freq + 7;
