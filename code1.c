@@ -312,7 +312,8 @@ else{
         printf("difference is %d\n", diffStress);
 
         //depending on baby change this to ampltiude first instead of frequency first
-      
+
+//add here that diffStresss only matters when stressLevel is lower than 10
 if(diffStress <= 3 && currentStress >= 0 && m.freq > 0 && m.amp > 0){
      printf("The frequency and amplitude have not been changed");
 }
