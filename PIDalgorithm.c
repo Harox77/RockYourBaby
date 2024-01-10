@@ -240,18 +240,18 @@ void receiveValues(int * heartbeat, int * crying){
 
 //function that checks the boundaries of the m.amp and m.freq numbers before sending them to the motor drivers
 void numberBoundaries(float * num1, float * num2){
-	if(*num1 > 100){
-		*num1 = 100;
-	}
-	if(*num2 > 100){
-		*num2 = 100;
-	}
-	if(*num1 <= 0){
-		*num1 = 0;
-	}
-	if(*num2 <= 0){
-		*num2 = 0;
-	}
+  if(*num1 > 100){
+    *num1 = 100;
+  }
+  if(*num2 > 100){
+    *num2 = 100;
+  }
+  if(*num1 <= 0){
+    *num1 = 0;
+  }
+  if(*num2 <= 0){
+    *num2 = 0;
+  }
 }
 
 void pidAlgorithm(matrix_t* m, pid_params_t* pid, int* heartRate, int* cryVolume) {
@@ -284,32 +284,32 @@ void pidAlgorithm(matrix_t* m, pid_params_t* pid, int* heartRate, int* cryVolume
         displayFillScreen(&display, RGB_BLACK);
 
         // Display rocking frequency
-        printf("Frequency: %.2f\n", m.freq);
+        printf("Frequency: %.2f\n", m->freq);
         uint8_t text3[] = "Frequency:";
-        uint8_t* read_sendF = convertIntegerToASCII(m.freq);
+        uint8_t* read_sendF = convertIntegerToASCII(m->freq);
         displayDrawString(&display, font, 100, fontHeight * 1, text3, RGB_WHITE);
         displayDrawString(&display, font, 100, fontHeight * 2, read_sendF, RGB_WHITE);
 
         // Display rocking frequency
-        printf("Amplitude: %.2f\n", m.amp);
+        printf("Amplitude: %.2f\n", m->amp);
         uint8_t text4[] = "Amplitude:";
-        uint8_t* read_sendA = convertIntegerToASCII(m.amp);
+        uint8_t* read_sendA = convertIntegerToASCII(m->amp);
         displayDrawString(&display, font, 100, fontHeight * 4, text4, RGB_WHITE);
         displayDrawString(&display, font, 100, fontHeight * 5, read_sendA, RGB_WHITE);
 
         printf("Stress: %d\n", currentStress);
         uint8_t text5[] = "Stress:";
-        uint8_t* read_sendZ = convertIntegerToASCII(randomStress);
+        uint8_t* read_sendZ = convertIntegerToASCII(currentStress);
         displayDrawString(&display, font, 100, fontHeight * 7, text5, RGB_WHITE);
         displayDrawString(&display, font, 100, fontHeight * 8, read_sendZ, RGB_WHITE);
 
-        printf("Output: %d\n", output);
+        printf("Output: %.2f\n", output);
         uint8_t text6[] = "PID Output:";
         uint8_t* read_sendV = convertIntegerToASCII(output);
         displayDrawString(&display, font, 100, fontHeight * 9, text6, RGB_WHITE);
         displayDrawString(&display, font, 100, fontHeight * 10, read_sendV, RGB_WHITE);
 
-	sleep_msec(100);
+  sleep_msec(100);
     }
 }
 
@@ -340,6 +340,8 @@ receiveValues(&heartRate, &cryVolume);
 
 
 while(1){
+
+pid_params_t pid = {0.1, 0.01, 0.01};
 
 pidAlgorithm(&m, &pid, &heartRate, &cryVolume);
 
