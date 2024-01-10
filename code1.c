@@ -10,23 +10,10 @@
 #define CYCLE 5
 
 typedef struct{
-	float freq; // frequency
-	float amp; // amplitude
+    float freq; // frequency
+    float amp; // amplitude
 }matrix_t;
 
-/*typedef struct{
-	int grid[5][5];
-	matrix_t size;
-}math_t;
-
-typedef struct _out_t{
-        int stressLevelMinimum;
-        int stressLevelMaximum;
-        int freq;
-        int amp;
-        //struct _out_t * prev;
-        struct _out_t * next;
-}out_t;*/
 
 // SEND thread arguments
 typedef struct send_args_t {
@@ -114,42 +101,40 @@ void* receive(void* arg){
         
 
 void randomNumber(int * frequency, int * amplitude){
-	int ran1, ran2; ran1 = 0; ran2 = 0;
-	
-	srand(time(NULL));
-	
-	ran1 = rand() % 101;
-	ran2 = rand() % 101;
+    int ran1, ran2; ran1 = 0; ran2 = 0;
+    
+    srand(time(NULL));
+    
+    ran1 = rand() % 101;
+    ran2 = rand() % 101;
 
-	*frequency = ran1;
-	*amplitude = ran2;
+    *frequency = ran1;
+    *amplitude = ran2;
 
-	//printf("ran1 is %d, ran2 is %d\n", ran1, ran2);
 }
 
 int calculateStressLevel(int frequency, int amplitude){
-	//need to calculate it by looking at the graphs
-	int stressLevel = 0;
-	int stress1 = 0;
-	int stress2 = 0;
+    //need to calculate it by looking at the graphs
+    int stressLevel = 0;
+    int stress1 = 0;
+    int stress2 = 0;
 
-	//matrix_t m;
 
-	if(frequency <= 10 && amplitude <= 10){
-		stressLevel = 10;
-	}
-	else if(amplitude >= 50){
-		stressLevel = (100+frequency)/2;
-	}
-	else if(frequency >= 10 && amplitude < 50 && amplitude >= 10){
-		stress1 = (amplitude - 10)/2.25;
-		stress2 = (frequency - 10);
-		stressLevel = (stress1 + stress2)/2;
-	}
-	else{
-		stressLevel = 30;
-	}
-	return stressLevel;
+    if(frequency <= 10 && amplitude <= 10){
+        stressLevel = 10;
+    }
+    else if(amplitude >= 50){
+        stressLevel = (100+frequency)/2;
+    }
+    else if(frequency >= 10 && amplitude < 50 && amplitude >= 10){
+        stress1 = (amplitude - 10)/2.25;
+        stress2 = (frequency - 10);
+        stressLevel = (stress1 + stress2)/2;
+    }
+    else{
+        stressLevel = 30;
+    }
+    return stressLevel;
 }
 
 
@@ -236,6 +221,22 @@ void receiveValues(int * heartbeat, int * crying){
     return;
 }
 
+void numberBoundaries(float * num1, float * num2){
+	if(*num1 > 100){
+		*num1 = 100;
+	}
+	if(*num2 > 100){
+		*num2 = 100;
+	}
+	if(*num1 <= 0){
+		*num1 = 0;
+	}
+	if(*num2 <= 0){
+		*num2 = 0;
+	}
+}
+
+
 int main(){
 pynq_init();
 int frequency, amplitude, currentStress; frequency = -1; amplitude = -1, currentStress = 0;
@@ -264,10 +265,6 @@ receiveValues(&frequency, &amplitude);
 
 while(1){
 receiveValues(&frequency, &amplitude);
-//printf("received something");
-
-//calculate the current stress level
-//currentStress = calculateStressLevel(frequency, amplitude);
 
 //save the current stress level in another variable that will later be used to compare values
 previousStress = currentStress;
@@ -275,18 +272,8 @@ previousStress = currentStress;
 //the first way of calculating with linked list
 currentStress = calculateStressLevel(frequency, amplitude);
 
-//lower frequency
-//check stress level
-//if not lowered revert and lower amplitude
+	numberBoundaries(&(m.amp), &(m.freq));
 
-
-
-if(m.freq>100){
-m.freq = 100;
-}
-if(m.amp>100){
-m.amp = 100;
-}
 
 if(currentStress == previousStress){
       ;
@@ -298,7 +285,7 @@ else{
         //send values with function
         sendValues(m.amp, m.freq);
 
-	receiveValues(&frequency, &amplitude);
+    receiveValues(&frequency, &amplitude);
 
         //current stress to compare
         randomStress = calculateStressLevel(frequency, amplitude);
@@ -316,14 +303,15 @@ else{
 //add here that diffStresss only matters when stressLevel is lower than 10
 if(diffStress <= 3 && currentStress >= 0 && currentStress <= 10 && m.freq > 0 && m.amp > 0){
      printf("The frequency and amplitude have not been changed");
-	sendValues(m.amp, m.freq);
+     numberBoundaries(&(m.amp), &(m.freq));
+    sendValues(m.amp, m.freq);
 }
-else if(/*diffStress > 3 && */randomStress > currentStress && currentStress >= 0 && currentStress > 10 && m.freq > 0 && m.amp > 0){
-	if(diffStress < 4){
-		m.freq = m.freq + 3;
-     		m.amp = m.amp - 3;
-	}
-     if(diffStress >= 4 && diffStress <= 10){
+else if(diffStress > 3 && diffStress <= 25 && randomStress > currentStress && currentStress >= 0 && currentStress > 10 && m.freq > 0 && m.amp > 0){
+    if(diffStress < 5){
+        m.freq = m.freq + 3;
+            m.amp = m.amp - 3;
+    }
+     if(diffStress >= 5 && diffStress <= 10){
      m.freq = m.freq + 8.89;
      m.amp = m.amp - 8.89;
      }
@@ -331,15 +319,17 @@ else if(/*diffStress > 3 && */randomStress > currentStress && currentStress >= 0
      m.freq = m.freq + 10.5;
      m.amp = m.amp - 10.5;
      }
+     numberBoundaries(&(m.amp), &(m.freq));
      sendValues(m.amp, m.freq);
 }
-else if(diffStress > 25 && currentStress >= 0 && m.freq > 0 && m.amp > 0){
+else if(diffStress > 25 && currentStress >= 0 && randomStress > currentStress && m.freq > 0 && m.amp > 0){
      m.freq = 100;
      m.amp = 100;
+     numberBoundaries(&(m.amp), &(m.freq));
      sendValues(m.amp, m.freq);
 }
 
-	//might want to change the reset to be when diffStress is high
+    //might want to change the reset to be when diffStress is high
 
 
 // else if (diffStress > 3 && randomStress < currentStress && currentStress >= 0 && m.freq > 0 && m.amp > 0){
@@ -353,7 +343,11 @@ else if(diffStress > 25 && currentStress >= 0 && m.freq > 0 && m.amp > 0){
       if(m.freq>100){
 m.freq = 100;
 }*/
-if(m.amp>100 && m.freq>100){
+
+     numberBoundaries(&(m.amp), &(m.freq));
+     sendValues(m.amp, m.freq);
+
+/*if(m.amp>100 && m.freq>100){
 m.amp = 100;
 m.freq = 100;
 sendValues(m.amp, m.freq);
@@ -365,18 +359,15 @@ sendValues(m.amp, m.freq);
 else if(m.freq>100){
 m.freq = 100;
 sendValues(m.amp, m.freq);
-}
+}*/
 /*else if (m.freq <= 0 || m.amp <= 0){
       m.freq = 80;
       m.amp = 80;
       sendValues(m.amp, m.freq);
 }*/
-//second way of calculating by trying different values and then determining if it works
-//values1 = determineFA1(currentStress, previousStress, head, frequency, amplitude);
 
 
 
-//printf("Amp is %d. Freq is %d.\n", values.amp, values.freq);
 
 printf("Amplitude sent is %.2f. Frequency sent is %.2f.\n", m.amp, m.freq);
 
