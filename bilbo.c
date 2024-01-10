@@ -264,6 +264,7 @@ void pidAlgorithm(matrix_t* m, pid_params_t* pid, int* heartRate, int* cryVolume
         receiveValues(heartRate, cryVolume);
 
         int currentStress = calculateStressLevel(*heartRate, *cryVolume);
+        printf("Current Stress: %d", currentStress);
         int error = targetStress - currentStress;
 
         integral += error;
@@ -280,6 +281,22 @@ void pidAlgorithm(matrix_t* m, pid_params_t* pid, int* heartRate, int* cryVolume
 
         prevError = error;
 
+        displayFillScreen(&display, RGB_BLACK);
+
+        // Display rocking frequency
+        printf("Frequency: %.2f\n", m.freq);
+        uint8_t text3[] = "Frequency:";
+        uint8_t* read_sendF = convertIntegerToASCII(m.freq);
+        displayDrawString(&display, font, 100, fontHeight * 1, text3, RGB_WHITE);
+        displayDrawString(&display, font, 100, fontHeight * 2, read_sendF, RGB_WHITE);
+
+        // Display rocking frequency
+        printf("Amplitude: %.2f\n", m.amp);
+        uint8_t text4[] = "Amplitude:";
+        uint8_t* read_sendA = convertIntegerToASCII(m.amp);
+        displayDrawString(&display, font, 100, fontHeight * 4, text4, RGB_WHITE);
+        displayDrawString(&display, font, 100, fontHeight * 5, read_sendA, RGB_WHITE);
+
         printf("Stress: %d\n", currentStress);
         uint8_t text5[] = "Stress:";
         uint8_t* read_sendZ = convertIntegerToASCII(randomStress);
@@ -292,7 +309,7 @@ void pidAlgorithm(matrix_t* m, pid_params_t* pid, int* heartRate, int* cryVolume
         displayDrawString(&display, font, 100, fontHeight * 9, text6, RGB_WHITE);
         displayDrawString(&display, font, 100, fontHeight * 10, read_sendV, RGB_WHITE);
 
-
+	sleep_msec(100);
     }
 }
 
@@ -329,32 +346,6 @@ pidAlgorithm(&m, &pid, &heartRate, &cryVolume);
 
 
 printf("Amplitude sent is %.2f. Frequency sent is %.2f.\n", m.amp, m.freq);
-
-
-displayFillScreen(&display, RGB_BLACK);
-
-    // Display rocking frequency
-    printf("Frequency: %.2f\n", m.freq);
-    uint8_t text3[] = "Frequency:";
-    uint8_t* read_sendF = convertIntegerToASCII(m.freq);
-    displayDrawString(&display, font, 100, fontHeight * 1, text3, RGB_WHITE);
-    displayDrawString(&display, font, 100, fontHeight * 2, read_sendF, RGB_WHITE);
-
-// Display rocking frequency
-    printf("Amplitude: %.2f\n", m.amp);
-    uint8_t text4[] = "Amplitude:";
-    uint8_t* read_sendA = convertIntegerToASCII(m.amp);
-    displayDrawString(&display, font, 100, fontHeight * 4, text4, RGB_WHITE);
-    displayDrawString(&display, font, 100, fontHeight * 5, read_sendA, RGB_WHITE);
-    
-    printf("Stress: %d\n", diffStress);
-    uint8_t text6[] = "Stress Diff:";
-    uint8_t* read_sendV = convertIntegerToASCII(diffStress);
-    displayDrawString(&display, font, 100, fontHeight * 9, text6, RGB_WHITE);
-    displayDrawString(&display, font, 100, fontHeight * 10, read_sendV, RGB_WHITE);
-
-    // wait some time for clarity
-    sleep_msec(100);
 
 
 
