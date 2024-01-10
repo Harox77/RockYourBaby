@@ -111,8 +111,6 @@ void* receive(void* arg){
 void randomNumber(int * frequency, int * amplitude){
   int ran1, ran2; ran1 = 0; ran2 = 0;
 
-  srand(time(NULL));
-
   ran1 = rand() % 101;
   ran2 = rand() % 101;
 
@@ -131,7 +129,7 @@ int calculateStressLevel(int heartbeat, int crying){
 
 
   //first situation, both heartbeat and crying are below 10 and thus stressLevel is 10
-  if(heartbeat <= 10 && crying <= 10){
+  if(heartbeat <= 10 || crying <= 10){
       stressLevel = 10;
   }
   //second situation, crying is over 50 and does not influence stress level anymore
@@ -259,55 +257,86 @@ void pidAlgorithm(matrix_t* m, pid_params_t* pid, int* heartRate, int* cryVolume
 
     double prevError = 0;
     double integral = 0;
+    int currentStress = 0;
+    int error = 0;
 
     while (1) {
-        receiveValues(heartRate, cryVolume);
+        srand(time(NULL));
+        randomNumber(heartRate, cryVolume);
+        printf("Current Heartrate and Crying Volume: %d %d\n", *heartRate, *cryVolume);
 
-        int currentStress = calculateStressLevel(*heartRate, *cryVolume);
-        printf("Current Stress: %d", currentStress);
-        int error = targetStress - currentStress;
+        int previousStress = currentStress;
 
+
+        currentStress = calculateStressLevel(*heartRate, *cryVolume);
+        printf("Current Stress: %d\n", currentStress);
+        error = targetStress - currentStress;
+
+
+
+        if(currentStress - previousStress > 20){
+          m->freq = 100;
+          m->amp = 100;
+        }
+        else{
         integral += error;
         double derivative = error - prevError;
 
         double output = pid->kp * error + pid->ki * integral + pid->kd * derivative;
 
+        printf("Output: %f\n", output);
+
         // Adjust frequency and amplitude based on PID output
         m->freq += output;
-        m->amp -= output;
+        //add receive here in real code
+        *heartRate = 30;
+        *cryVolume = 30;
+
+        printf(" zxczxczxczxczxc %d %d\n", *heartRate, *cryVolume);
+        int epicStress = calculateStressLevel(*heartRate, *cryVolume);
+        printf("epicStress is equal to: %d, and difference is: %d\n", epicStress, epicStress-currentStress);
+
+        if(epicStress >= currentStress){
+          m->freq -= output;
+          m->amp += output;
+        }
+
+        //printf("Output: %.2f\n", output);
+        uint8_t text6[] = "PID Output:";
+        uint8_t* read_sendV = convertIntegerToASCII(output);
+        displayDrawString(&display, font, 100, fontHeight * 9, text6, RGB_WHITE);
+        displayDrawString(&display, font, 100, fontHeight * 10, read_sendV, RGB_WHITE);
+        }
 
         numberBoundaries(&(m->freq), &(m->amp));
+        printf("Amplitude is: %f, Frequency is: %f", m->amp, m->freq);
         sendValues(m->amp, m->freq);
+
+        // int previousStress = calculateStressLevel(*heartRate, *cryVolume);
 
         prevError = error;
 
         displayFillScreen(&display, RGB_BLACK);
 
         // Display rocking frequency
-        printf("Frequency: %.2f\n", m->freq);
+        //printf("Frequency: %.2f\n", m->freq);
         uint8_t text3[] = "Frequency:";
         uint8_t* read_sendF = convertIntegerToASCII(m->freq);
         displayDrawString(&display, font, 100, fontHeight * 1, text3, RGB_WHITE);
         displayDrawString(&display, font, 100, fontHeight * 2, read_sendF, RGB_WHITE);
 
         // Display rocking frequency
-        printf("Amplitude: %.2f\n", m->amp);
+        //printf("Amplitude: %.2f\n", m->amp);
         uint8_t text4[] = "Amplitude:";
         uint8_t* read_sendA = convertIntegerToASCII(m->amp);
         displayDrawString(&display, font, 100, fontHeight * 4, text4, RGB_WHITE);
         displayDrawString(&display, font, 100, fontHeight * 5, read_sendA, RGB_WHITE);
 
-        printf("Stress: %d\n", currentStress);
+        //printf("Stress: %d\n", currentStress);
         uint8_t text5[] = "Stress:";
         uint8_t* read_sendZ = convertIntegerToASCII(currentStress);
         displayDrawString(&display, font, 100, fontHeight * 7, text5, RGB_WHITE);
         displayDrawString(&display, font, 100, fontHeight * 8, read_sendZ, RGB_WHITE);
-
-        printf("Output: %.2f\n", output);
-        uint8_t text6[] = "PID Output:";
-        uint8_t* read_sendV = convertIntegerToASCII(output);
-        displayDrawString(&display, font, 100, fontHeight * 9, text6, RGB_WHITE);
-        displayDrawString(&display, font, 100, fontHeight * 10, read_sendV, RGB_WHITE);
 
   sleep_msec(100);
     }
@@ -332,11 +361,11 @@ m.freq = MAXIMUM;
 m.amp = MAXIMUM;
 
 
-while(heartRate == -1 || cryVolume == -1){
-uint8_t textz[] = "Waiting for Input";
-displayDrawString(&display, font, 54, 120, textz, RGB_RED);
-receiveValues(&heartRate, &cryVolume);
-}
+// while(heartRate == -1 || cryVolume == -1){
+// uint8_t textz[] = "Waiting for Input";
+// displayDrawString(&display, font, 54, 120, textz, RGB_RED);
+// randomNumber(&heartRate, &cryVolume);
+// }
 
 
 while(1){
