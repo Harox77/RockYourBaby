@@ -324,7 +324,7 @@ void pathMaker1(int a, int b, int* heartbeat, int* crying){
 
     //it does do something
 
-    sendValues(*heartbeat, *crying);
+    //sendValues(*heartbeat, *crying);
 
     receiveValues(heartbeat, crying);
     //randomNumber(heartbeat, crying);
@@ -353,7 +353,7 @@ void pathMaker1(int a, int b, int* heartbeat, int* crying){
     difference = heartbeat - prevH;
     }*/
 
-    sendValues(80, 80);
+    //sendValues(80, 80);
     if(!uart_has_data(UART0)){
         ;
     }
@@ -499,6 +499,10 @@ void pathMaker1(int a, int b, int* heartbeat, int* crying){
             reset();
             //sendValues(amp[a], freq[b]);
         }
+      else if(difference <= 0){
+          sleep(5);
+          pathMaker1(a, b, heartbeat, crying);
+      }
     }
 
     else if(difference <= 0){
