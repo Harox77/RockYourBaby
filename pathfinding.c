@@ -24,6 +24,20 @@ typedef struct rec_args_t {
   uart_index_t portRX; // UART peripheral/port which receives the data
 } rec_args_t;
 
+
+typedef struct _diff1{
+    int difference;
+    int a;
+    int b;
+} diff1;
+
+typedef struct _diff2{
+    int difference;
+    int a;
+    int b;
+} diff2;
+
+
 // Display stuff
 display_t display;
 FontxFile font[2];
@@ -189,6 +203,8 @@ void receiveValues(int * heartbeat, int * crying){
   return;
 }
 
+
+
 void randomNumber(int * frequency, int * amplitude){
   int ran1, ran2; ran1 = 0; ran2 = 0;
 
@@ -265,16 +281,33 @@ void pathMaker1(int a, int b, int* heartbeat, int* crying){
     switchbox_set_pin(IO_AR1 ,SWB_UART0_TX);
     switchbox_set_pin(IO_AR0 ,SWB_UART1_TX);
 
+    uint8_t heartbeat12 = 0;
+
+    uint8_t heartB = 0;
+
+    int lastdir = 1;
+
 
     displayFunction(a, b);
     printf("function started");
-    int prevH, prevC, difference; prevH = 0; prevC = 0; difference = 0;
+    //int prevH;prevH = 0; 
 
-    int diffHeartbeat1, diffHeartbeat2, diffHeartbeat3; diffHeartbeat1 = 0; diffHeartbeat2 = 0; diffHeartbeat3 = 0;
+    int diffHeartbeat1, diffHeartbeat2; diffHeartbeat1 = 0; diffHeartbeat2 = 0; 
 
-    int freq[5] = {10, 30, 50, 70, 90};
-    int amp[5] = {10, 30, 50, 70, 90};
+    int freq[5] = {10, 33, 55, 78, 100};
+    int amp[5] = {10, 33, 55, 78, 100};
     
+    red();
+    printf("Amplitude %d, Frequency %d\n", amp[a-1], freq[b-1]);
+    reset();
+    sendValues(amp[a-1], freq[b-1]);
+    printf("a is %d, b is %d\n", a, b);
+
+    sleep_msec(10000);
+
+    uart_reset_fifos(UART1);
+    heartB = uart_recv(UART1);
+
     while(1){
     if(a < 1){
         a = 1;
@@ -300,219 +333,76 @@ void pathMaker1(int a, int b, int* heartbeat, int* crying){
         return;
     }
 
-    //check if the heartbeat is over 230, then reset
-    //at the current position, keep sending and see if anything lowers
-    //do a - 1 if a is not 1, and check if anything lowers
-    //if not, go back to the previous position and keep sending again
-    //do b - 1 if b is not 1, and check if anything lowers
-
-    if(!uart_has_data(UART0)){
-        ;
-    }
-    else{
-        receiveValues(heartbeat, crying);
-    }
-
-    //randomNumber(heartbeat, crying);
-
-    if(*heartbeat > 230){
-        a = 5;
-        b = 5;
-    }
-
     printf("Heartbeat is %d, Crying Volume is %d\n", *heartbeat, *crying);
 
-    //it does do something
-
-    //sendValues(*heartbeat, *crying);
-
-    receiveValues(heartbeat, crying);
-    //randomNumber(heartbeat, crying);
-
-    prevH = *heartbeat;
-    prevC = *crying;
-
-    printf("prevC GNORE!!! %d\n", prevC);
-
-
-    if(a != 1){
-        a = a - 1;
-        //sendValues(amp[a], freq[b]);
-        red();
-        printf("Amplitude %d, Frequency %d\n", amp[a-1], freq[b-1]);
-        reset();
-        sendValues(amp[a-1], freq[b-1]);
-        printf("a is %d, b is %d\n", a, b);
-    }
+  
     if(a == 1 && b >= 4){
         a = 5;
         b = 5;
-    }
-    /*while(heartbeat != prevH){
-    receiveValues(heartbeat, crying);
-    difference = heartbeat - prevH;
-    }*/
 
-    //sendValues(80, 80);
-    if(!uart_has_data(UART0)){
-        ;
-    }
-    else{
-        receiveValues(heartbeat, crying);
-    }
-    //randomNumber(heartbeat, crying);
-    diffHeartbeat1 = *heartbeat;
-    sleep_msec(2000);
-
-    if(!uart_has_data(UART0)){
-        ;
-    }
-    else{
-        receiveValues(heartbeat, crying);
-    }
-    //randomNumber(heartbeat, crying);
-    diffHeartbeat2 = *heartbeat;
-    sleep_msec(2000);
-
-    if(!uart_has_data(UART0)){
-        ;
-    }
-    else{
-        receiveValues(heartbeat, crying);
-    }
-    //randomNumber(heartbeat, crying);
-    diffHeartbeat3 = *heartbeat;
-
-    if(diffHeartbeat3 - diffHeartbeat2 > 10 && diffHeartbeat2 - diffHeartbeat1 > 10){
-        green();
-        printf("pathMaker1 has been called again\n");
-        reset();
-        a = 5;
-        b = 5;
-        pathMaker1(a, b, heartbeat, crying);
     }
 
 
-    int averageHeartbeat = (diffHeartbeat1 + diffHeartbeat2 + diffHeartbeat3)/3;
 
-
-    purple();
-    printf("averageHeartbeat is %d\n", averageHeartbeat);
-    reset();
-
-    //this function will be replaced by the three receiveValues
-    //compare averageHeartbeat with prevH and then determine if difference is higher than 0 or not
-
-    difference = averageHeartbeat - prevH;
-
-    // while((*heartbeat) != prevH){
-    // randomNumber(heartbeat, crying);
-    // difference = (*crying) - prevH;
-    // }
-    // //temporarily here
-    // difference = (*crying) - prevH;
-
-    //receive thrice
-    //save all three variables and take the average
-    //use that average for determining difference
-    //sleep_msec(500) between each of the values received
-
-    printf("\n the difference is %d\n", difference);
-
-
-    if(difference > 0){
-        a = a + 1;
-        if(b != 1){
+    switch(lastdir){
+      case 0:
         b = b - 1;
-        printf("Decreased b!\n");
-        }
-        //sendValues(amp[a], freq[b]);
-        yellow();
-        printf("Amplitude with b %d, Frequency %d\n", amp[a-1], freq[b-1]);
-        printf("a is %d, b is %d\n", a, b);
         sendValues(amp[a-1], freq[b-1]);
-        reset();
+        lastdir = 1;
+        break;
+      case 1:
+        a = a -1;
+        sendValues(amp[a-1], freq[b-1]);
+        lastdir = 0;
+        break;
+    }
 
-        if(!uart_has_data(UART0)){
-            ;
-        }
-        else{
-            receiveValues(heartbeat, crying);
-        }
-        //randomNumber(heartbeat, crying);
+    sleep_msec(10000);
 
-        prevH = *heartbeat;
-        prevC = *crying;
 
-        if(!uart_has_data(UART0)){
-            ;
-        }
-        else{
-            receiveValues(heartbeat, crying);
-        }
-        //randomNumber(heartbeat, crying);
-        diffHeartbeat1 = *heartbeat;
-        sleep_msec(2000);
+    //randomNumber(heartbeat, crying);
+    diffHeartbeat1 = heartB;
+    printf("before\n");
+    sleep(20);
+    printf("after\n");
 
-        if(!uart_has_data(UART0)){
-            ;
-        }
-        else{
-            receiveValues(heartbeat, crying);
-        }
-        //randomNumber(heartbeat, crying);
-        diffHeartbeat2 = *heartbeat;
-        sleep_msec(2000);
+    uart_reset_fifos(UART1);
+    heartbeat12 = uart_recv(UART1);
 
-        if(!uart_has_data(UART0)){
-            ;
-        }
-        else{
-            receiveValues(heartbeat, crying);
-        }
-        //randomNumber(heartbeat, crying);
-        diffHeartbeat3 = *heartbeat;
+    printf("Heartbeat12 is %d", heartbeat12);
+    
+    //randomNumber(heartbeat, crying);
+    diffHeartbeat2 = heartbeat12;
+    
 
-        if(diffHeartbeat3 - diffHeartbeat2 > 10 && diffHeartbeat2 - diffHeartbeat1 > 10){
-            green();
-            printf("pathMaker1 has been called again\n");
-            reset();
-            a = 5;
-            b = 5;
-            pathMaker1(a, b, heartbeat, crying);
-        }
 
-        int averageHeartbeat = (diffHeartbeat1 + diffHeartbeat2 + diffHeartbeat3)/3;
 
-        difference = averageHeartbeat - prevH;
+    int averageHeartbeat = diffHeartbeat2 - diffHeartbeat1;
 
-        // while((*heartbeat) != prevH){
-        // //receiveValues(heartbeat, crying);
-        // randomNumber(heartbeat, crying);
-        // difference = (*heartbeat) - prevH;
-        // }
-
-        if(difference > 0){
-            b = b + 1;
-            cyan();
-            printf("Amplitude %d, Frequency %d\n Difference is %d\n", amp[a-1], freq[b-1], difference);
-            reset();
-            //sendValues(amp[a], freq[b]);
-        }
-      else if(difference <= 0){
-          sleep(5);
-          pathMaker1(a, b, heartbeat, crying);
+      cyan();
+      printf("averageHeartbeat is %d\n", averageHeartbeat);
+      reset();
+    
+    if(averageHeartbeat >= 0){
+      switch(averageHeartbeat){
+      case 1:
+        b = b + 1;
+        sendValues(amp[a-1], freq[b-1]);
+        break;
+      case 0:
+        a = a + 1;
+        sendValues(amp[a-1], freq[b-1]);
+        break;
       }
     }
 
-    else if(difference <= 0){
-        ;
-    }
 
 
     //displayFunction(a, b);
     //remove sleep in later edition of the code
-    sleep(5);
+    //sleep(2);
+    heartB = heartbeat12;
+    sleep_msec(11000);
     }
 
     return;  
